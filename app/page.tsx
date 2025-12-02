@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import GitHubRepos from '../components/GitHubRepos';
+import SnakeGame from '../components/SnakeGame';
+import AnimatedCounter from '../components/AnimatedCounter';
+import { AnimatePresence, motion, useInView } from 'framer-motion';
 
 const articles = [
   {
@@ -85,7 +88,75 @@ const projects = [
 ];
 
 export default function Portfolio() {
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const scaleIn = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6 }
+    }
+  };
+
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.6 }
+    }
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.6 }
+    }
+  };
+
+  const rotateIn = {
+    hidden: { opacity: 0, rotate: -180, scale: 0.5 },
+    visible: {
+      opacity: 1,
+      rotate: 0,
+      scale: 1,
+      transition: { duration: 0.8 }
+    }
+  };
+
+  const flipIn = {
+    hidden: { opacity: 0, rotateY: -90 },
+    visible: {
+      opacity: 1,
+      rotateY: 0,
+      transition: { duration: 0.7 }
+    }
+  };
+
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<number | null>(null);
   const [darkMode, setDarkMode] = useState(() => {
@@ -95,6 +166,9 @@ export default function Portfolio() {
     }
     return false;
   });
+  const [showSnake, setShowSnake] = useState(false);
+  
+
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
@@ -105,17 +179,46 @@ export default function Portfolio() {
     }
   }, [darkMode]);
 
-  const selectedProjectData = projects.find(p => p.id === selectedProject);
+  // Scroll Progress Bar
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const progress = (window.scrollY / totalHeight) * 100;
+      setScrollProgress(progress);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Mouse Position Tracking for Magnetic Buttons
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+const selectedProjectData = projects.find(p => p.id === selectedProject);
   const selectedArticleData = articles.find(a => a.id === selectedArticle);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'} relative transition-colors duration-300`}>
+      {/* Scroll Progress Bar */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 origin-left z-[100]"
+        style={{ scaleX: scrollProgress / 100 }}
+        initial={{ scaleX: 0 }}
+      />
+
       {/* Navigation */}
       <nav className={`fixed top-0 w-full ${darkMode ? 'bg-gray-800/80' : 'bg-white/80'} backdrop-blur-xl border-b ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'} z-50 transition-colors duration-300`}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className={`text-xl font-semibold tracking-tight ${darkMode ? 'text-white' : 'text-black'}`}>MS</div>
-            <div className="flex items-center gap-6 text-sm">
+            <div className="hidden lg:flex items-center gap-4 xl:gap-6 text-sm">
               <a href="#about" className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-black'} transition-colors`}>À propos</a>
               <a href="#projects" className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-black'} transition-colors`}>Projets</a>
               <a href="#github" className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-black'} transition-colors`}>GitHub</a>
@@ -143,45 +246,82 @@ export default function Portfolio() {
                 )}
               </button>
             </div>
+
+            {/* Mobile dark mode toggle */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`lg:hidden p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-yellow-400' : 'bg-gray-100 text-gray-700'} hover:scale-110 transition-all duration-300`}
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fillRule="evenodd" clipRule="evenodd"></path>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section id="about" className="pt-32 pb-20 px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section id="about" className="relative pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="max-w-4xl">
-            <h1 className="text-7xl lg:text-8xl font-semibold tracking-tight mb-8 leading-none">
+            <h1 
+              className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tight mb-6 sm:mb-8 leading-none ${darkMode ? 'text-white' : 'text-gray-900'}`}
+            >
               Bonjour, je suis
-              <span className="block text-gray-400 mt-2">Matteo Servanty</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 mt-2">
+                Matteo Servanty
+              </span>
             </h1>
-            <p className="text-2xl lg:text-3xl text-gray-600 leading-relaxed font-light max-w-3xl">
+            <p 
+              className={`text-lg sm:text-xl lg:text-2xl xl:text-3xl ${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed font-light max-w-3xl`}
+            >
               Technicien réseaux en alternance, passionné par l&apos;infrastructure cloud
               et le développement web moderne.
             </p>
+            <button
+              onClick={() => setShowSnake(true)}
+              className="opacity-0 hover:opacity-100 transition-opacity mt-8 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-semibold"
+              title="Easter Egg: Snake Game!"
+            >
+              🐍 Snake Game
+            </button>
           </div>
         </div>
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="py-20 px-6 lg:px-8 bg-gray-50">
+      <section id="projects" className={`py-20 px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-semibold tracking-tight mb-4">Projets</h2>
-          <p className="text-xl text-gray-600 mb-16">Une sélection de mes réalisations</p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <h2 className={`text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Projets</h2>
+            <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-16`}>Une sélection de mes réalisations</p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
             {projects.map((project, index) => (
               <div
                 key={project.id}
                 className={`
                   relative overflow-hidden rounded-2xl cursor-pointer
-                  ${index === 3 ? 'md:col-span-2' : ''}
                   ${hoveredProject === project.id ? 'scale-[0.98]' : 'scale-100'}
                   transition-all duration-500 ease-out
-                  group
+                  group flex flex-col
+                  ${index === 3 ? 'lg:col-span-2' : ''}
                 `}
                 style={{
-                  aspectRatio: index === 3 ? '2/1' : '1/1',
+                  minHeight: '300px',
                 }}
                 onMouseEnter={() => setHoveredProject(project.id)}
                 onMouseLeave={() => setHoveredProject(null)}
@@ -195,7 +335,39 @@ export default function Portfolio() {
 
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500" />
 
-                <div className="relative h-full p-8 flex flex-col justify-end text-white">
+                <div className="relative h-full p-8 flex flex-col text-white">
+                  {/* Icon at the top */}
+                  <div className="mb-auto">
+                    <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
+                      {project.category === 'Réseau' && (
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        </svg>
+                      )}
+                      {project.category === 'Développement' && (
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                      )}
+                      {project.category === 'DevOps' && (
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      )}
+                      {project.category === 'Sécurité' && (
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      )}
+                      {project.category === 'Backend' && (
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Content at the bottom */}
                   <div className={`
                     transition-transform duration-500
                     ${hoveredProject === project.id ? 'translate-y-0' : 'translate-y-2'}
@@ -217,12 +389,21 @@ export default function Portfolio() {
       </section>
 
       {/* GitHub Section */}
-      <section id="github" className="py-20 px-6 lg:px-8">
+      <section id="github" className={`py-20 px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-semibold tracking-tight mb-4">GitHub</h2>
-          <p className="text-xl text-gray-600 mb-16">Mes projets open source</p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            <h2 className={`text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>GitHub</h2>
+            <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-16`}>Mes projets open source - Repos réels depuis l&apos;API GitHub</p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <GitHubRepos darkMode={darkMode} username="servantymatteo" />
+
+          <div className="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* GitHub Repo Card 1 */}
             <a
               href="https://github.com/yourusername/repo1"
@@ -332,151 +513,160 @@ export default function Portfolio() {
       </section>
 
       {/* Timeline Section */}
-      <section id="experience" className="py-20 px-6 lg:px-8 bg-gray-50">
+      <section id="experience" className={`py-16 sm:py-20 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-semibold tracking-tight mb-4">Parcours</h2>
-          <p className="text-xl text-gray-600 mb-16">Mon parcours chronologique complet</p>
+          <h2 className={`text-4xl sm:text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Parcours</h2>
+          <p className={`text-lg sm:text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-12 sm:mb-16`}>Mon parcours chronologique complet</p>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="relative border-l-2 border-gray-300 pl-8 space-y-12">
+          <div className="max-w-5xl mx-auto">
+            {/* Grid Layout for larger screens, single column for mobile */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 auto-rows-fr">
 
               {/* Item 1 - BTS Actuel */}
-              <div className="relative">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-white">
+              <motion.div
+                className="relative group flex"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeInLeft}
+              >
+                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-blue-500 z-10">
                   <div className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-75"></div>
                 </div>
-                <div className="mb-3">
-                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">2025 – 2027</span>
-                  <span className="ml-2 text-xs text-gray-500">Formation</span>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className={`${darkMode ? "bg-gray-800 border-blue-500/50" : "bg-white border-blue-200"} rounded-2xl p-6 sm:p-8 shadow-sm border-2 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex-1`}>
+                  <div className="flex items-start gap-3 sm:gap-4 h-full">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0 shadow-lg">
+                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">BTS SIO SISR</h3>
-                      <p className="text-gray-600 mb-2">M2S Formation – Vitrolles</p>
-                      <p className="text-gray-600 text-sm">Services Informatiques aux Organisations.</p>
+                    <div className="flex-1 flex flex-col">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="inline-block px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold">2025 – 2027</span>
+                        <span className="text-xs text-blue-600 font-medium">En cours</span>
+                      </div>
+                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>BTS SIO SISR</h3>
+                      <p className="text-blue-600 font-semibold mb-2 text-sm sm:text-base">M2S Formation – Vitrolles</p>
+                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Services Informatiques aux Organisations, spécialité Solutions d&apos;Infrastructure, Systèmes et Réseaux.</p>
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Item 2 - Poste Actuel */}
-              <div className="relative">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white">
+              <motion.div
+                className="relative group flex"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeInRight}
+              >
+                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-green-500 z-10">
                   <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
                 </div>
-                <div className="mb-3">
-                  <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Actuellement</span>
-                  <span className="ml-2 text-xs text-gray-500">Expérience professionnelle</span>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className={`${darkMode ? "bg-gray-800 border-green-500/50" : "bg-white border-green-200"} rounded-2xl p-6 sm:p-8 shadow-sm border-2 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex-1`}>
+                  <div className="flex items-start gap-3 sm:gap-4 h-full">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center shrink-0 shadow-lg">
+                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">Technicien Systèmes & Réseau</h3>
-                      <p className="text-gray-600 mb-2">Mairie de Septèmes-les-Vallons</p>
-                      <p className="text-gray-600 text-sm">Administration, support, infrastructure, Proxmox.</p>
+                    <div className="flex-1 flex flex-col">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="inline-block px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">Actuellement</span>
+                        <span className="text-xs text-green-600 font-medium">Alternance</span>
+                      </div>
+                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Technicien Systèmes & Réseau</h3>
+                      <p className="text-green-600 font-semibold mb-2 text-sm sm:text-base">Mairie de Septèmes-les-Vallons</p>
+                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Administration système, support utilisateur, infrastructure réseau et virtualisation Proxmox.</p>
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Item 3 - Bachelor */}
-              <div className="relative">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
-                <div className="mb-3">
-                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">2024</span>
-                  <span className="ml-2 text-xs text-gray-500">Formation</span>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="relative group flex">
+                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-blue-400 z-10"></div>
+                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
+                  <div className="flex items-start gap-3 sm:gap-4 h-full">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-blue-400 to-cyan-400 flex items-center justify-center shrink-0">
+                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">Bachelor Logiciel & Réseau</h3>
-                      <p className="text-gray-600 mb-2">ESGI – Aix-en-Provence</p>
-                      <p className="text-gray-600 text-sm">Gestion de projets IT et réseaux.</p>
+                    <div className="flex-1 flex flex-col">
+                      <div className="mb-2">
+                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-blue-900/50 text-blue-300" : "bg-blue-50 text-blue-700"} rounded-full text-xs font-semibold`}>2024</span>
+                      </div>
+                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Bachelor Logiciel & Réseau</h3>
+                      <p className="text-blue-600 font-semibold mb-2 text-sm sm:text-base">ESGI – Aix-en-Provence</p>
+                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Gestion de projets informatiques, administration réseau et développement logiciel.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Item 4 - Webmaster */}
-              <div className="relative">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-purple-500 border-2 border-white"></div>
-                <div className="mb-3">
-                  <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">2023 – 2024</span>
-                  <span className="ml-2 text-xs text-gray-500">Expérience professionnelle</span>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <div className="relative group flex">
+                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-purple-500 z-10"></div>
+                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
+                  <div className="flex items-start gap-3 sm:gap-4 h-full">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
+                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">Webmaster</h3>
-                      <p className="text-gray-600 mb-2">Qirios – Full remote</p>
-                      <p className="text-gray-600 text-sm">React, Tailwind, SEO.</p>
+                    <div className="flex-1 flex flex-col">
+                      <div className="mb-2">
+                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-purple-900/50 text-purple-300" : "bg-purple-50 text-purple-700"} rounded-full text-xs font-semibold`}>2023 – 2024</span>
+                      </div>
+                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Webmaster</h3>
+                      <p className="text-purple-600 font-semibold mb-2 text-sm sm:text-base">Qirios – Full remote</p>
+                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Développement web avec React et Tailwind CSS, optimisation SEO et gestion de contenu.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Item 5 - Stage */}
-              <div className="relative">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-gray-400 border-2 border-white"></div>
-                <div className="mb-3">
-                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">Nov 2022</span>
-                  <span className="ml-2 text-xs text-gray-500">Expérience professionnelle</span>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-gray-400 to-gray-600 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="relative group flex">
+                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-gray-400 z-10"></div>
+                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
+                  <div className="flex items-start gap-3 sm:gap-4 h-full">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-gray-400 to-gray-600 flex items-center justify-center shrink-0">
+                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">Stagiaire</h3>
-                      <p className="text-gray-600 mb-2">CSE Air France – Marignane</p>
-                      <p className="text-gray-600 text-sm">WordPress, newsletters.</p>
+                    <div className="flex-1 flex flex-col">
+                      <div className="mb-2">
+                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"} rounded-full text-xs font-semibold`}>Novembre 2022</span>
+                      </div>
+                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Stagiaire Web</h3>
+                      <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} font-semibold mb-2 text-sm sm:text-base`}>CSE Air France – Marignane</p>
+                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Développement WordPress, création et envoi de newsletters, gestion de contenu.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Item 6 - Bac Pro */}
-              <div className="relative">
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-gray-400 border-2 border-white"></div>
-                <div className="mb-3">
-                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">2020 – 2024</span>
-                  <span className="ml-2 text-xs text-gray-500">Formation</span>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-gray-400 to-gray-600 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="relative group flex">
+                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-gray-500 z-10"></div>
+                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
+                  <div className="flex items-start gap-3 sm:gap-4 h-full">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-gray-500 to-gray-700 flex items-center justify-center shrink-0">
+                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">Bac Pro SN</h3>
-                      <p className="text-gray-600 mb-2">Vitrolles</p>
-                      <p className="text-gray-600 text-sm">Mention Bien.</p>
+                    <div className="flex-1 flex flex-col">
+                      <div className="mb-2">
+                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"} rounded-full text-xs font-semibold`}>2020 – 2024</span>
+                      </div>
+                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Bac Pro SN</h3>
+                      <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} font-semibold mb-2 text-sm sm:text-base`}>Lycée Pierre Mendès France – Vitrolles</p>
+                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Systèmes Numériques option Réseaux Informatiques et Systèmes Communicants. Mention Bien.</p>
                     </div>
                   </div>
                 </div>
@@ -488,10 +678,17 @@ export default function Portfolio() {
       </section>
 
       {/* Compétences Section */}
-      <section id="competences" className="py-20 px-6 lg:px-8 bg-gray-50">
+      <section id="competences" className={`py-20 px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-semibold tracking-tight mb-4">Compétences</h2>
-          <p className="text-xl text-gray-600 mb-16">Mes domaines d&apos;expertise technique</p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <h2 className={`text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Compétences</h2>
+          <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-16`}>Mes domaines d&apos;expertise technique</p>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Développement */}
@@ -561,10 +758,10 @@ export default function Portfolio() {
       </section>
 
       {/* Veille Informatique Section */}
-      <section id="veille" className="py-20 px-6 lg:px-8 bg-linear-to-b from-white to-gray-50">
+      <section id="veille" className={`py-20 px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-linear-to-b from-white to-gray-50'}`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-semibold tracking-tight mb-4">Veille Informatique</h2>
-          <p className="text-xl text-gray-600 mb-16">Actualités et découvertes technologiques</p>
+          <h2 className={`text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Veille Informatique</h2>
+          <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-16`}>Actualités et découvertes technologiques</p>
 
           <div className="space-y-4">
             {/* Article Featured */}
@@ -657,74 +854,114 @@ export default function Portfolio() {
       </section>
 
       {/* Stats Section */}
-      <section id="stats" className="py-20 px-6 lg:px-8">
+      <section id="stats" className={`py-16 sm:py-20 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-semibold tracking-tight mb-4">En chiffres</h2>
-          <p className="text-xl text-gray-600 mb-16">Quelques statistiques sur mon parcours</p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <h2 className={`text-4xl sm:text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>En chiffres</h2>
+            <p className={`text-lg sm:text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-12 sm:mb-16`}>Quelques statistiques sur mon parcours</p>
+          </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
+          >
             {/* Stat 1 */}
-            <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-blue-500 to-cyan-500 p-8 text-white">
+            <motion.div
+              variants={scaleIn}
+              className="relative overflow-hidden rounded-2xl bg-linear-to-br from-blue-500 to-cyan-500 p-6 sm:p-8 text-white hover:scale-105 transition-transform duration-300"
+            >
               <div className="absolute top-0 right-0 opacity-10">
-                <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-24 h-24 sm:w-32 sm:h-32" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
                   <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path>
                 </svg>
               </div>
               <div className="relative">
-                <div className="text-5xl font-bold mb-2">15+</div>
-                <div className="text-white/90 font-medium">Projets réalisés</div>
+                <div className="text-4xl sm:text-5xl font-bold mb-2">
+                  <AnimatedCounter end={3} suffix="+" duration={2.5} />
+                </div>
+                <div className="text-white/90 font-medium text-sm sm:text-base">Projets réalisés</div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Stat 2 */}
-            <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-purple-500 to-pink-500 p-8 text-white">
+            <motion.div
+              variants={scaleIn}
+              className="relative overflow-hidden rounded-2xl bg-linear-to-br from-purple-500 to-pink-500 p-6 sm:p-8 text-white hover:scale-105 transition-transform duration-300"
+            >
               <div className="absolute top-0 right-0 opacity-10">
-                <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-24 h-24 sm:w-32 sm:h-32" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
                 </svg>
               </div>
               <div className="relative">
-                <div className="text-5xl font-bold mb-2">5+</div>
-                <div className="text-white/90 font-medium">Années d&apos;études</div>
+                <div className="text-4xl sm:text-5xl font-bold mb-2">
+                  <AnimatedCounter end={2} suffix="+" duration={2.5} />
+                </div>
+                <div className="text-white/90 font-medium text-sm sm:text-base">Années d&apos;études</div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Stat 3 */}
-            <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-green-500 to-emerald-500 p-8 text-white">
+            <motion.div
+              variants={scaleIn}
+              className="relative overflow-hidden rounded-2xl bg-linear-to-br from-green-500 to-emerald-500 p-6 sm:p-8 text-white hover:scale-105 transition-transform duration-300"
+            >
               <div className="absolute top-0 right-0 opacity-10">
-                <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-24 h-24 sm:w-32 sm:h-32" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd"></path>
                   <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"></path>
                 </svg>
               </div>
               <div className="relative">
-                <div className="text-5xl font-bold mb-2">3</div>
-                <div className="text-white/90 font-medium">Expériences pro</div>
+                <div className="text-4xl sm:text-5xl font-bold mb-2">
+                  <AnimatedCounter end={3} duration={2.5} />
+                </div>
+                <div className="text-white/90 font-medium text-sm sm:text-base">Expériences pro</div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Stat 4 */}
-            <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-orange-500 to-red-500 p-8 text-white">
+            <motion.div
+              variants={scaleIn}
+              className="relative overflow-hidden rounded-2xl bg-linear-to-br from-orange-500 to-red-500 p-6 sm:p-8 text-white hover:scale-105 transition-transform duration-300"
+            >
               <div className="absolute top-0 right-0 opacity-10">
-                <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-24 h-24 sm:w-32 sm:h-32" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
                 </svg>
               </div>
               <div className="relative">
-                <div className="text-5xl font-bold mb-2">10+</div>
-                <div className="text-white/90 font-medium">Technologies</div>
+                <div className="text-4xl sm:text-5xl font-bold mb-2">
+                  <AnimatedCounter end={10} suffix="+" duration={2.5} />
+                </div>
+                <div className="text-white/90 font-medium text-sm sm:text-base">Technologies</div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Certifications Section */}
-      <section id="certifications" className="py-20 px-6 lg:px-8 bg-gray-50">
+      <section id="certifications" className={`py-20 px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-semibold tracking-tight mb-4">Certifications</h2>
-          <p className="text-xl text-gray-600 mb-16">Mes certifications et formations professionnelles</p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
+            <h2 className={`text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Certifications</h2>
+          <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-16`}>Mes certifications et formations professionnelles</p>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Certification 1 */}
@@ -762,8 +999,8 @@ export default function Portfolio() {
               </div>
               <p className="text-gray-600 text-sm mb-4">Expertise en virtualisation et gestion d&apos;infrastructure avec Proxmox VE.</p>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">Certifié</span>
-                <span className="text-xs text-gray-500">2024</span>
+                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">En cours</span>
+                <span className="text-xs text-gray-500">2025</span>
               </div>
             </div>
 
@@ -782,8 +1019,8 @@ export default function Portfolio() {
               </div>
               <p className="text-gray-600 text-sm mb-4">Certification développement d&apos;applications web modernes avec React et Next.js.</p>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">Certifié</span>
-                <span className="text-xs text-gray-500">2023</span>
+                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">En cours</span>
+                <span className="text-xs text-gray-500">2025</span>
               </div>
             </div>
           </div>
@@ -791,7 +1028,7 @@ export default function Portfolio() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 px-6 lg:px-8">
+      <section id="contact" className={`py-20 px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-indigo-500 to-purple-600 p-12 lg:p-16">
             <div className="absolute inset-0 bg-black/10" />
@@ -857,10 +1094,18 @@ export default function Portfolio() {
         </div>
       </section>
 
+
+      {/* Snake Game Easter Egg */}
+      <AnimatePresence>
+        {showSnake && (
+          <SnakeGame onClose={() => setShowSnake(false)} darkMode={darkMode} />
+        )}
+      </AnimatePresence>
+
       {/* Footer */}
-      <footer className="py-12 px-6 lg:px-8 bg-gray-50">
+      <footer className={`py-12 px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center text-sm text-gray-600">
+          <div className={`text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             <p>© 2024 Matteo Servanty. Tous droits réservés.</p>
           </div>
         </div>
