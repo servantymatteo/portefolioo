@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import CrispChat from "../components/CrispChat";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,6 +25,7 @@ export default function RootLayout({
         className={`${inter.variable} antialiased`}
       >
         {children}
+        <CrispChat />
       </body>
     </html>
   );

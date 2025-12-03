@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import GitHubRepos from '../components/GitHubRepos';
 import SnakeGame from '../components/SnakeGame';
 import AnimatedCounter from '../components/AnimatedCounter';
+import TypingAnimation from '../components/TypingAnimation';
 import { AnimatePresence, motion, useInView } from 'framer-motion';
 
 const articles = [
@@ -279,12 +280,14 @@ const selectedProjectData = projects.find(p => p.id === selectedProject);
                 Matteo Servanty
               </span>
             </h1>
-            <p 
+            <div
               className={`text-lg sm:text-xl lg:text-2xl xl:text-3xl ${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed font-light max-w-3xl`}
             >
-              Technicien réseaux en alternance, passionné par l&apos;infrastructure cloud
-              et le développement web moderne.
-            </p>
+              <TypingAnimation
+                text="Technicien réseaux en alternance, passionné par l'infrastructure cloud et le développement web moderne."
+                speed={30}
+              />
+            </div>
             <button
               onClick={() => setShowSnake(true)}
               className="opacity-0 hover:opacity-100 transition-opacity mt-8 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-semibold"
@@ -518,159 +521,352 @@ const selectedProjectData = projects.find(p => p.id === selectedProject);
           <h2 className={`text-4xl sm:text-5xl font-semibold tracking-tight mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Parcours</h2>
           <p className={`text-lg sm:text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-12 sm:mb-16`}>Mon parcours chronologique complet</p>
 
-          <div className="max-w-5xl mx-auto">
-            {/* Grid Layout for larger screens, single column for mobile */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 auto-rows-fr">
+          <div className="max-w-5xl mx-auto relative">
+            {/* Vertical Timeline Line - Hidden on mobile, shown on lg */}
+            <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-gray-400"></div>
 
-              {/* Item 1 - BTS Actuel */}
-              <motion.div
-                className="relative group flex"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                variants={fadeInLeft}
-              >
-                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-blue-500 z-10">
-                  <div className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-75"></div>
-                </div>
-                <div className={`${darkMode ? "bg-gray-800 border-blue-500/50" : "bg-white border-blue-200"} rounded-2xl p-6 sm:p-8 shadow-sm border-2 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex-1`}>
-                  <div className="flex items-start gap-3 sm:gap-4 h-full">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0 shadow-lg">
-                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 flex flex-col">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="inline-block px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold">2025 – 2027</span>
-                        <span className="text-xs text-blue-600 font-medium">En cours</span>
-                      </div>
-                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>BTS SIO SISR</h3>
-                      <p className="text-blue-600 font-semibold mb-2 text-sm sm:text-base">M2S Formation – Vitrolles</p>
-                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Services Informatiques aux Organisations, spécialité Solutions d&apos;Infrastructure, Systèmes et Réseaux.</p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+            {/* Timeline Items */}
+            <div className="space-y-8 lg:space-y-12">
 
-              {/* Item 2 - Poste Actuel */}
+              {/* Item 1 - BTS Actuel - RIGHT SIDE */}
               <motion.div
-                className="relative group flex"
+                className="relative lg:grid lg:grid-cols-2 lg:gap-8"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
                 variants={fadeInRight}
               >
-                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-green-500 z-10">
-                  <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
+                {/* Date on left for desktop */}
+                <motion.div
+                  className="hidden lg:flex justify-end items-start pt-8 pr-8"
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className={`text-right ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="text-2xl font-bold">2025</div>
+                    <div className="text-sm">En cours</div>
+                  </div>
+                </motion.div>
+
+                {/* Connection Point */}
+                <div className="hidden lg:block absolute left-1/2 top-8 transform -translate-x-1/2 w-5 h-5 rounded-full bg-blue-500 border-4 border-gray-900 z-20 group-hover:scale-125 transition-transform">
+                  <div className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-75"></div>
                 </div>
-                <div className={`${darkMode ? "bg-gray-800 border-green-500/50" : "bg-white border-green-200"} rounded-2xl p-6 sm:p-8 shadow-sm border-2 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex-1`}>
-                  <div className="flex items-start gap-3 sm:gap-4 h-full">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center shrink-0 shadow-lg">
-                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 flex flex-col">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="inline-block px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">Actuellement</span>
-                        <span className="text-xs text-green-600 font-medium">Alternance</span>
+
+                {/* Content Card */}
+                <div className="relative">
+                  <div className={`${darkMode ? "bg-gray-800 border-blue-500/50" : "bg-white border-blue-200"} rounded-2xl p-6 sm:p-8 shadow-lg border-2 hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 group`}>
+                    <div className="flex items-start gap-4">
+                      {/* Logo/Icon */}
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0 shadow-lg">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
                       </div>
-                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Technicien Systèmes & Réseau</h3>
-                      <p className="text-green-600 font-semibold mb-2 text-sm sm:text-base">Mairie de Septèmes-les-Vallons</p>
-                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Administration système, support utilisateur, infrastructure réseau et virtualisation Proxmox.</p>
+
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="inline-block px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold">2025 – 2027</span>
+                          <span className="inline-flex items-center gap-1 text-xs text-blue-600 font-medium">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                            En cours
+                          </span>
+                        </div>
+                        <h3 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>BTS SIO SISR</h3>
+                        <p className="text-blue-600 font-semibold mb-3">M2S Formation – Vitrolles</p>
+                        <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm leading-relaxed`}>
+                          Services Informatiques aux Organisations, spécialité Solutions d&apos;Infrastructure, Systèmes et Réseaux.
+                        </p>
+
+                        {/* Hidden details revealed on hover */}
+                        <div className="mt-4 opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-40 transition-all duration-500 overflow-hidden">
+                          <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2 font-semibold`}>Compétences développées:</p>
+                            <div className="flex flex-wrap gap-2">
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Administration Système</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Réseaux</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Cybersécurité</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Item 3 - Bachelor */}
-              <div className="relative group flex">
-                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-blue-400 z-10"></div>
-                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
-                  <div className="flex items-start gap-3 sm:gap-4 h-full">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-blue-400 to-cyan-400 flex items-center justify-center shrink-0">
-                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 flex flex-col">
-                      <div className="mb-2">
-                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-blue-900/50 text-blue-300" : "bg-blue-50 text-blue-700"} rounded-full text-xs font-semibold`}>2024</span>
+              {/* Item 2 - Poste Actuel - LEFT SIDE */}
+              <motion.div
+                className="relative lg:grid lg:grid-cols-2 lg:gap-8"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeInLeft}
+              >
+                {/* Content Card - Left side on desktop */}
+                <div className="relative lg:col-start-1">
+                  <div className={`${darkMode ? "bg-gray-800 border-green-500/50" : "bg-white border-green-200"} rounded-2xl p-6 sm:p-8 shadow-lg border-2 hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 group lg:text-right`}>
+                    <div className="flex items-start gap-4 lg:flex-row-reverse">
+                      {/* Logo/Icon */}
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shrink-0 shadow-lg">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
                       </div>
-                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Bachelor Logiciel & Réseau</h3>
-                      <p className="text-blue-600 font-semibold mb-2 text-sm sm:text-base">ESGI – Aix-en-Provence</p>
-                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Gestion de projets informatiques, administration réseau et développement logiciel.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Item 4 - Webmaster */}
-              <div className="relative group flex">
-                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-purple-500 z-10"></div>
-                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
-                  <div className="flex items-start gap-3 sm:gap-4 h-full">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
-                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 flex flex-col">
-                      <div className="mb-2">
-                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-purple-900/50 text-purple-300" : "bg-purple-50 text-purple-700"} rounded-full text-xs font-semibold`}>2023 – 2024</span>
-                      </div>
-                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Webmaster</h3>
-                      <p className="text-purple-600 font-semibold mb-2 text-sm sm:text-base">Qirios – Full remote</p>
-                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Développement web avec React et Tailwind CSS, optimisation SEO et gestion de contenu.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2 lg:justify-end">
+                          <span className="inline-block px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">Actuellement</span>
+                          <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            Alternance
+                          </span>
+                        </div>
+                        <h3 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Technicien Systèmes & Réseau</h3>
+                        <p className="text-green-600 font-semibold mb-3">Mairie de Septèmes-les-Vallons</p>
+                        <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm leading-relaxed`}>
+                          Administration système, support utilisateur, infrastructure réseau et virtualisation Proxmox.
+                        </p>
 
-              {/* Item 5 - Stage */}
-              <div className="relative group flex">
-                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-gray-400 z-10"></div>
-                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
-                  <div className="flex items-start gap-3 sm:gap-4 h-full">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-gray-400 to-gray-600 flex items-center justify-center shrink-0">
-                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 flex flex-col">
-                      <div className="mb-2">
-                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"} rounded-full text-xs font-semibold`}>Novembre 2022</span>
+                        {/* Hidden details revealed on hover */}
+                        <div className="mt-4 opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-40 transition-all duration-500 overflow-hidden">
+                          <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2 font-semibold`}>Technologies utilisées:</p>
+                            <div className="flex flex-wrap gap-2 lg:justify-end">
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'}`}>Proxmox</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'}`}>Linux</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'}`}>Active Directory</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'}`}>VPN</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Stagiaire Web</h3>
-                      <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} font-semibold mb-2 text-sm sm:text-base`}>CSE Air France – Marignane</p>
-                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Développement WordPress, création et envoi de newsletters, gestion de contenu.</p>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Item 6 - Bac Pro */}
-              <div className="relative group flex">
-                <div className="absolute -top-2 -left-2 w-3 h-3 rounded-full bg-gray-500 z-10"></div>
-                <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex-1`}>
-                  <div className="flex items-start gap-3 sm:gap-4 h-full">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-gray-500 to-gray-700 flex items-center justify-center shrink-0">
-                      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 flex flex-col">
-                      <div className="mb-2">
-                        <span className={`inline-block px-3 py-1 ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"} rounded-full text-xs font-semibold`}>2020 – 2024</span>
+                {/* Connection Point */}
+                <div className="hidden lg:block absolute left-1/2 top-8 transform -translate-x-1/2 w-5 h-5 rounded-full bg-green-500 border-4 border-gray-900 z-20 group-hover:scale-125 transition-transform">
+                  <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
+                </div>
+
+                {/* Date on right for desktop */}
+                <motion.div
+                  className="hidden lg:flex justify-start items-start pt-8 pl-8"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className={`text-left ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="text-2xl font-bold">2025</div>
+                    <div className="text-sm">Alternance</div>
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Item 3 - Bachelor - RIGHT SIDE */}
+              <motion.div
+                className="relative lg:grid lg:grid-cols-2 lg:gap-8"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeInRight}
+              >
+                <motion.div
+                  className="hidden lg:flex justify-end items-start pt-8 pr-8"
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className={`text-right ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="text-2xl font-bold">2024</div>
+                    <div className="text-sm">Formation</div>
+                  </div>
+                </motion.div>
+                <div className="hidden lg:block absolute left-1/2 top-8 transform -translate-x-1/2 w-5 h-5 rounded-full bg-blue-400 border-4 border-gray-900 z-20"></div>
+                <div className="relative">
+                  <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-lg border hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}>
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center shrink-0 shadow-lg">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
                       </div>
-                      <h3 className={`text-xl sm:text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Bac Pro SN</h3>
-                      <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} font-semibold mb-2 text-sm sm:text-base`}>Lycée Pierre Mendès France – Vitrolles</p>
-                      <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm sm:text-base`}>Systèmes Numériques option Réseaux Informatiques et Systèmes Communicants. Mention Bien.</p>
+                      <div className="flex-1">
+                        <div className="mb-2">
+                          <span className={`inline-block px-3 py-1 ${darkMode ? "bg-blue-900/50 text-blue-300" : "bg-blue-50 text-blue-700"} rounded-full text-xs font-semibold`}>2024</span>
+                        </div>
+                        <h3 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Bachelor Logiciel & Réseau</h3>
+                        <p className="text-blue-600 font-semibold mb-3">ESGI – Aix-en-Provence</p>
+                        <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm leading-relaxed`}>Gestion de projets informatiques, administration réseau et développement logiciel.</p>
+                        <div className="mt-4 opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-40 transition-all duration-500 overflow-hidden">
+                          <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <div className="flex flex-wrap gap-2">
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Gestion de projet</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Dev logiciel</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
+
+              {/* Item 4 - Webmaster - LEFT SIDE */}
+              <motion.div
+                className="relative lg:grid lg:grid-cols-2 lg:gap-8"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeInLeft}
+              >
+                <div className="relative lg:col-start-1">
+                  <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-lg border hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group lg:text-right`}>
+                    <div className="flex items-start gap-4 lg:flex-row-reverse">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2 lg:justify-end">
+                          <span className={`inline-block px-3 py-1 ${darkMode ? "bg-purple-900/50 text-purple-300" : "bg-purple-50 text-purple-700"} rounded-full text-xs font-semibold`}>2023 – 2024</span>
+                        </div>
+                        <h3 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Webmaster</h3>
+                        <p className="text-purple-600 font-semibold mb-3">Qirios – Full remote</p>
+                        <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm leading-relaxed`}>Développement web avec React et Tailwind CSS, optimisation SEO et gestion de contenu.</p>
+                        <div className="mt-4 opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-40 transition-all duration-500 overflow-hidden">
+                          <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <div className="flex flex-wrap gap-2 lg:justify-end">
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>React</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>Tailwind</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>SEO</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden lg:block absolute left-1/2 top-8 transform -translate-x-1/2 w-5 h-5 rounded-full bg-purple-500 border-4 border-gray-900 z-20"></div>
+                <motion.div
+                  className="hidden lg:flex justify-start items-start pt-8 pl-8"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className={`text-left ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="text-2xl font-bold">2023</div>
+                    <div className="text-sm">Emploi</div>
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Item 5 - Stage - RIGHT SIDE */}
+              <motion.div
+                className="relative lg:grid lg:grid-cols-2 lg:gap-8"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeInRight}
+              >
+                <motion.div
+                  className="hidden lg:flex justify-end items-start pt-8 pr-8"
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className={`text-right ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="text-2xl font-bold">2022</div>
+                    <div className="text-sm">Stage</div>
+                  </div>
+                </motion.div>
+                <div className="hidden lg:block absolute left-1/2 top-8 transform -translate-x-1/2 w-5 h-5 rounded-full bg-gray-400 border-4 border-gray-900 z-20"></div>
+                <div className="relative">
+                  <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-lg border hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}>
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center shrink-0 shadow-lg">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="mb-2">
+                          <span className={`inline-block px-3 py-1 ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"} rounded-full text-xs font-semibold`}>Novembre 2022</span>
+                        </div>
+                        <h3 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Stagiaire Web</h3>
+                        <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} font-semibold mb-3`}>CSE Air France – Marignane</p>
+                        <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm leading-relaxed`}>Développement WordPress, création et envoi de newsletters, gestion de contenu.</p>
+                        <div className="mt-4 opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-40 transition-all duration-500 overflow-hidden">
+                          <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <div className="flex flex-wrap gap-2">
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>WordPress</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>Newsletter</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Item 6 - Bac Pro - LEFT SIDE */}
+              <motion.div
+                className="relative lg:grid lg:grid-cols-2 lg:gap-8"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeInLeft}
+              >
+                <div className="relative lg:col-start-1">
+                  <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} rounded-2xl p-6 sm:p-8 shadow-lg border hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group lg:text-right`}>
+                    <div className="flex items-start gap-4 lg:flex-row-reverse">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center shrink-0 shadow-lg">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2 lg:justify-end">
+                          <span className={`inline-block px-3 py-1 ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"} rounded-full text-xs font-semibold`}>2020 – 2024</span>
+                        </div>
+                        <h3 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-1`}>Bac Pro SN</h3>
+                        <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} font-semibold mb-3`}>Lycée Pierre Mendès France – Vitrolles</p>
+                        <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm leading-relaxed`}>Systèmes Numériques option Réseaux Informatiques et Systèmes Communicants. Mention Bien.</p>
+                        <div className="mt-4 opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-40 transition-all duration-500 overflow-hidden">
+                          <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <div className="flex flex-wrap gap-2 lg:justify-end">
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>Réseaux</span>
+                              <span className={`px-2 py-1 text-xs rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>Systèmes</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden lg:block absolute left-1/2 top-8 transform -translate-x-1/2 w-5 h-5 rounded-full bg-gray-500 border-4 border-gray-900 z-20"></div>
+                <motion.div
+                  className="hidden lg:flex justify-start items-start pt-8 pl-8"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className={`text-left ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="text-2xl font-bold">2020</div>
+                    <div className="text-sm">Bac Pro</div>
+                  </div>
+                </motion.div>
+              </motion.div>
 
             </div>
           </div>
